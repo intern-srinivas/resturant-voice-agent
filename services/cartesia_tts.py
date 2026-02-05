@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class CartesiaTTS:
     """Cartesia Text-to-Speech service."""
 
-    def __init__(self, voice_id: str = "79c157dd-d2a2-4d51-8cb5-87796855127b"):
+    def __init__(self, voice_id: str = "7ea5e9c2-b719-4dc3-b870-5ba5f14d31d8"):
         """
         Initialize Cartesia TTS.
 
