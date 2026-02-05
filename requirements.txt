@@ -8,4 +8,4 @@ python-dotenv==1.0.1
 pydantic==2.6.0
 httpx==0.26.0
 python-multipart==0.0.6
-cartesia
+cartesia==2.0.17
