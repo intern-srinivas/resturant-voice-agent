@@ -30,6 +30,7 @@ class DeepgramSTT:
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self._connected = False
         self._receive_task: Optional[asyncio.Task] = None
+        self._keepalive_task: Optional[asyncio.Task] = None
 
     def _build_url(self) -> str:
         """Build the Deepgram WebSocket URL with parameters."""
@@ -57,10 +58,23 @@ class DeepgramSTT:
             self.ws = await websockets.connect(url, extra_headers=headers)
             self._connected = True
             self._receive_task = asyncio.create_task(self._receive_loop())
+            self._keepalive_task = asyncio.create_task(self._keepalive_loop())
             logger.info("Connected to Deepgram STT")
         except Exception as e:
             logger.error(f"Failed to connect to Deepgram: {e}")
             raise
+
+    async def _keepalive_loop(self) -> None:
+        """Send keepalive messages to prevent Deepgram timeout."""
+        while self._connected and self.ws:
+            try:
+                await asyncio.sleep(5)  # Send keepalive every 5 seconds
+                if self._connected and self.ws:
+                    await self.ws.send(json.dumps({"type": "KeepAlive"}))
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.debug(f"Keepalive error: {e}")
 
     async def _receive_loop(self) -> None:
         """Listen for transcription results from Deepgram."""
@@ -129,6 +143,13 @@ class DeepgramSTT:
                 await self.ws.close()
             except Exception as e:
                 logger.error(f"Error closing Deepgram connection: {e}")
+
+        if self._keepalive_task:
+            self._keepalive_task.cancel()
+            try:
+                await self._keepalive_task
+            except asyncio.CancelledError:
+                pass
 
         if self._receive_task:
             self._receive_task.cancel()

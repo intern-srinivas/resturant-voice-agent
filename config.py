@@ -16,6 +16,9 @@ class Config:
     # ElevenLabs
     ELEVENLABS_API_KEY: str = os.getenv("ELEVENLABS_API_KEY", "")
 
+    # Cartesia
+    CARTESIA_API_KEY: str = os.getenv("CARTESIA_API_KEY", "")
+
     # OpenAI
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 

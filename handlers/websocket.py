@@ -4,7 +4,7 @@ import json
 import logging
 from fastapi import WebSocket, WebSocketDisconnect
 from services.deepgram_stt import DeepgramSTT
-from services.elevenlabs_tts import ElevenLabsTTS
+from services.cartesia_tts import CartesiaTTS
 from services.openai_llm import OpenAILLM
 from services.conversation import get_or_create_conversation, end_conversation
 
@@ -19,7 +19,7 @@ class CallSession:
         self.plivo_ws = plivo_ws
         self.conversation = get_or_create_conversation(call_id)
         self.llm = OpenAILLM()
-        self.tts = ElevenLabsTTS()
+        self.tts = CartesiaTTS()
         self.stt: DeepgramSTT | None = None
         self.stream_id: str | None = None
 
@@ -107,21 +107,26 @@ class CallSession:
                 logger.error(f"Error processing user input: {e}")
 
     async def _speak(self, text: str) -> None:
-        """Convert text to speech and send to caller."""
+        """Convert text to speech and send to caller with streaming."""
         if not text.strip():
             return
 
         async with self._processing_lock:
             self._is_speaking = True
+            total_bytes = 0
             try:
-                audio_data = await self.tts.synthesize(text)
+                # Stream audio chunks as they arrive
+                async for chunk in self.tts.synthesize_stream(text):
+                    if chunk:
+                        await self._send_audio_to_plivo(chunk)
+                        total_bytes += len(chunk)
 
-                if audio_data:
-                    await self._send_audio_to_plivo(audio_data)
+                logger.info(f"Streamed TTS audio: {total_bytes} bytes")
 
-                    # Wait for audio to play
-                    duration = len(audio_data) / 8000
-                    await asyncio.sleep(duration + 0.5)
+                # Wait for audio to finish playing
+                if total_bytes > 0:
+                    duration = total_bytes / 8000
+                    await asyncio.sleep(duration + 0.3)
 
             except Exception as e:
                 logger.error(f"Error speaking: {e}")
@@ -148,7 +153,6 @@ class CallSession:
                 }
             })
 
-            logger.info(f"Sending audio to Plivo: {len(audio_data)} bytes")
             await self.plivo_ws.send_text(message)
 
         except Exception as e:

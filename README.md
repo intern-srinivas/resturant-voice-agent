@@ -1,18 +1,18 @@
 # Voice AI Agent - Restaurant Reservation System
 
-AI-powered voice agent that handles inbound calls for restaurant reservations using Plivo, Deepgram (STT), ElevenLabs (TTS), and OpenAI GPT-4.
+AI-powered voice agent that handles inbound calls for restaurant reservations using Plivo, Deepgram (STT), Cartesia (TTS), and OpenAI GPT-4.
 
 ## Architecture
 
 ```
-Inbound Call → Plivo → WebSocket → Deepgram STT → OpenAI GPT-4 → ElevenLabs TTS → Caller
+Inbound Call → Plivo → WebSocket → Deepgram STT → OpenAI GPT-4 → Cartesia TTS → Caller
 ```
 
 ## Features
 
 - Real-time speech-to-text transcription
 - Natural language understanding for reservation booking
-- Human-like voice responses
+- Human-like voice responses with streaming TTS
 - Conversation state tracking (date, time, party size, name)
 - Graceful error handling
 
@@ -38,7 +38,7 @@ Edit `.env` with your API keys:
 - `PLIVO_AUTH_ID` - From Plivo Console
 - `PLIVO_AUTH_TOKEN` - From Plivo Console
 - `DEEPGRAM_API_KEY` - From Deepgram Console
-- `ELEVENLABS_API_KEY` - From ElevenLabs
+- `CARTESIA_API_KEY` - From Cartesia
 - `OPENAI_API_KEY` - From OpenAI Platform
 - `SERVER_URL` - Your deployment URL
 
@@ -85,7 +85,7 @@ python main.py
 ├── services/
 │   ├── conversation.py     # Conversation state management
 │   ├── deepgram_stt.py     # Deepgram speech-to-text
-│   ├── elevenlabs_tts.py   # ElevenLabs text-to-speech
+│   ├── cartesia_tts.py     # Cartesia text-to-speech
 │   └── openai_llm.py       # OpenAI conversation handler
 └── utils/
     └── audio.py            # Audio conversion utilities
@@ -115,6 +115,6 @@ python main.py
 - **Backend:** Python, FastAPI
 - **Telephony:** Plivo Voice API
 - **Speech-to-Text:** Deepgram Nova-2
-- **Text-to-Speech:** ElevenLabs
-- **LLM:** OpenAI GPT-4
+- **Text-to-Speech:** Cartesia Sonic-3
+- **LLM:** OpenAI GPT-4o-mini
 - **Hosting:** Render

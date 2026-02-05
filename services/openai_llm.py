@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from typing import Optional
@@ -32,12 +33,12 @@ Remember: You're on a phone call, so keep responses natural and speakable. Avoid
 class OpenAILLM:
     """OpenAI GPT-4 service for conversation handling."""
 
-    def __init__(self, model: str = "gpt-4-turbo-preview"):
+    def __init__(self, model: str = "gpt-4o-mini"):
         """
         Initialize OpenAI LLM.
 
         Args:
-            model: OpenAI model to use
+            model: OpenAI model to use (gpt-4o-mini is fastest)
         """
         self.model = model
         self.client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
@@ -89,8 +90,8 @@ class OpenAILLM:
             # Add assistant message to history
             conversation.add_assistant_message(assistant_message)
 
-            # Try to extract reservation details from the conversation
-            await self._extract_reservation_details(conversation, user_input)
+            # Extract reservation details in background (don't wait)
+            asyncio.create_task(self._extract_reservation_details(conversation, user_input))
 
             logger.info(f"LLM response: {assistant_message}")
             return assistant_message
